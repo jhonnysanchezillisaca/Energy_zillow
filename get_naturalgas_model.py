@@ -152,4 +152,4 @@ print(df_gas_pred)
 
 df_gas_pred.to_csv("gas_forecast.csv", index=False)
 
-plot_annual_natural_gas_forecast(df_gas_pred)
+#plot_annual_natural_gas_forecast(df_gas_pred)

@@ -149,7 +149,7 @@ print(df_pred)
 
 df_pred.to_csv("electricity_forecast.csv", index=False)
 
-plot_annual_forecast(df_pred)
+#plot_annual_forecast(df_pred)
 
 
 

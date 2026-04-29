@@ -35,9 +35,6 @@ columnas = ["BBL",
 df_final = pd.DataFrame(columns=columnas)
 
 
-
-"""
-
 for k in range(r):
 
     fila1 = df_building.iloc[k,1:4].to_numpy()
@@ -74,10 +71,4 @@ for k in range(r):
 
 
 df_final.to_csv("pred_to_display.csv",index=False,encoding='utf-8')
-"""
 
-
-
-
-k = f.display_future(bbl)
-print(k)

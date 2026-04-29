@@ -239,11 +239,11 @@ if st.session_state.pagina_actual == "busqueda":
     st.title("🔍 Energy Search")
 
     query = st.text_input(
-        "Busca una dirección o edificio:",
+        "Search and address",
         placeholder="Ej: 123 Main St"
     )
 
-    if st.button("Analizar Edificio"):
+    if st.button("Analyze Building"):
 
         resultado = buscar_direcciones_similares(query)
         resultado_bbl = resultado["BBL"] 
@@ -259,7 +259,7 @@ if st.session_state.pagina_actual == "busqueda":
             st.session_state.pagina_actual = "dashboard"
             st.rerun()
         else:
-            st.error("No se encontró el edificio.")
+            st.error("No Building available")
 
 
 # =========================================================
@@ -272,13 +272,13 @@ elif st.session_state.pagina_actual == "dashboard":
     data_fuels = asegurar_serie(st.session_state.fuels_info)
 
     if data is None:
-        st.error("No hay datos para mostrar.")
-        if st.button("⬅️ Volver a búsqueda"):
+        st.error("No data available")
+        if st.button("⬅️ Go back for a search"):
             st.session_state.pagina_actual = "busqueda"
             st.rerun()
         st.stop()
 
-    if st.button("⬅️ Nueva Búsqueda"):
+    if st.button("⬅️ New Search"):
         st.session_state.pagina_actual = "busqueda"
         st.session_state.datos_busqueda = None
         st.rerun()
@@ -519,11 +519,6 @@ elif st.session_state.pagina_actual == "dashboard":
 
             st.plotly_chart(fig, use_container_width=True)
 
-            st.divider()
-
-    with st.expander("🔎 Ver datos crudos"):
-        st.dataframe(pd.DataFrame([data]), use_container_width=True)
-        st.divider()
 
     st.write("## 🤖 Improve building efficiency advices")
 
