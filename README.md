@@ -127,10 +127,91 @@ python etl/future.py
 
 ## Deployment Notes
 
+### Docker (Recommended for Self-Hosting)
+
+The backend can be containerized and deployed with Docker. This is the recommended approach for self-hosting on Proxmox LXC or any Docker-capable host.
+
+**Prerequisites:**
+- Docker Engine
+- Docker Compose
+- Git
+
+**Environment Variables:**
+
+Copy `.env.example` to `.env` and fill in your secrets:
+
+```bash
+cp .env.example .env
+# Edit .env and add:
+# OPENAI_API_KEY=sk-...
+# CLOUDFLARE_TUNNEL_TOKEN=...  (for public access via Cloudflare Tunnel)
+# CORS_ORIGINS=https://your-frontend.vercel.app,https://your-frontend.netlify.app
+```
+
+**Build & Run:**
+
+```bash
+docker compose up --build -d
+```
+
+This starts:
+- The API at `http://localhost:8000`
+- A Cloudflare Tunnel for secure public access (no port forwarding needed)
+
+**Update to Latest:**
+
+```bash
+./deploy.sh
+```
+
+### Proxmox LXC (Self-Hosting)
+
+1. **Create the LXC** with Docker using the helper script:
+   ```bash
+   # On Proxmox host
+   bash -c "$(wget -qLO - https://github.com/tteck/Proxmox/raw/main/ct/docker.sh)"
+   ```
+   Choose the Docker LXC option.
+
+2. **SSH into the LXC** and run the setup:
+   ```bash
+   git clone -b refactor https://github.com/jhonnysanchezillisaca/Energy_zillow.git
+   cd Energy_zillow
+   ./setup.sh
+   ```
+
+3. **Edit `.env`** and add your real secrets:
+   ```bash
+   nano .env
+   # Add: OPENAI_API_KEY, CLOUDFLARE_TUNNEL_TOKEN, CORS_ORIGINS
+   ```
+
+4. **Start the application:**
+   ```bash
+   ./deploy.sh
+   ```
+
+**To update later:**
+```bash
+cd ~/Energy_zillow
+./deploy.sh
+```
+
+### Cloud Platforms
+
 - **Backend:** Any ASGI host (Render, Railway, Fly.io). Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
 - **Frontend:** Static site host (Vercel, Netlify, GitHub Pages). Build command: `npm run build` inside `frontend/`. Output directory: `frontend/dist/`.
-- **CORS:** Update `backend/main.py` `allow_origins` to include your production frontend URL.
+- **CORS:** Update `CORS_ORIGINS` in `.env` to include your production frontend URL.
 - **Secrets:** Never commit `.env`. Set environment variables on your hosting platform.
+
+## Deployment Scripts
+
+The repository includes two deployment scripts:
+
+- **`setup.sh`** — One-time setup for a new LXC. Clones the repo, creates `.env` from template, and starts the application.
+- **`deploy.sh`** — Update script. Pulls latest changes from git, rebuilds Docker containers, and prunes old images.
+
+Both scripts are located at the repository root and are executable.
 
 ## Tech Stack
 
