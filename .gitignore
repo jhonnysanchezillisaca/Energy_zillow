@@ -1,14 +1,22 @@
-# Archivo .gitignore
+# Project
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Data artifacts (keep in repo for demo, but ignore large/raw downloads)
 LL84.csv
 Pluto.csv
-__pycache__
-test.py
-test1.py
-secrets.toml
-.streamlit
-test5.py
-electricity_forecast.csv
-gas_forecast.csv
-oil_forecast.csv
-weights_fuels.csv
+*.csv
+!data/*.csv
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

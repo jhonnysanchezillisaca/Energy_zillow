@@ -1,10 +1,10 @@
-pandas
-numpy
+pandas>=2.2.0
+numpy>=1.26.0
 certifi
 rapidfuzz
-streamlit
-openai
+openai>=1.30.0
 python-dotenv
-streamlit-chat
 plotly
-
+fastapi>=0.115.0
+uvicorn[standard]
+pydantic>=2.9.0

@@ -1,4 +1,4 @@
-# %%
+import os
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,9 +7,9 @@ from prophet import Prophet
 
 def get_eia_heating_oil_prices(api_key):
     """
-    Descarga precios semanales de heating oil residencial para New York desde EIA.
+    Download weekly residential heating oil prices for New York from EIA.
 
-    Unidad:
+    Unit:
         dollars per gallon
     """
 
@@ -36,7 +36,7 @@ def get_eia_heating_oil_prices(api_key):
     df = pd.DataFrame(data)
 
     if df.empty:
-        raise ValueError("La API no devolvió datos. Revisa la API key o el código de serie.")
+        raise ValueError("The API returned no data. Check the API key or series code.")
 
     df = df[["period", "value"]].copy()
     df["ds"] = pd.to_datetime(df["period"])
@@ -49,8 +49,8 @@ def get_eia_heating_oil_prices(api_key):
 
 def forecast_annual_heating_oil_price(api_key, years=15):
     """
-    Entrena Prophet con precios semanales de heating oil
-    y devuelve la predicción promedio anual para los próximos años.
+    Train Prophet with weekly heating oil prices
+    and return the average annual prediction for upcoming years.
     """
 
     df = get_eia_heating_oil_prices(api_key)
@@ -97,7 +97,7 @@ def forecast_annual_heating_oil_price(api_key, years=15):
 
 def plot_heating_oil_forecast(forecast_annual):
     """
-    Grafica la predicción anual del heating oil.
+    Plot the annual heating oil price prediction.
     """
 
     plt.figure(figsize=(10, 5))
@@ -106,7 +106,7 @@ def plot_heating_oil_forecast(forecast_annual):
         forecast_annual["year"],
         forecast_annual["predicted_dollars_per_gallon"],
         marker="o",
-        label="Predicción"
+        label="Prediction"
     )
 
     plt.fill_between(
@@ -114,34 +114,37 @@ def plot_heating_oil_forecast(forecast_annual):
         forecast_annual["lower_dollars_per_gallon"],
         forecast_annual["upper_dollars_per_gallon"],
         alpha=0.2,
-        label="Intervalo de incertidumbre"
+        label="Uncertainty interval"
     )
 
-    plt.title("Predicción precio anual Heating Oil - New York")
-    plt.xlabel("Año")
+    plt.title("Annual Heating Oil Price Prediction - New York")
+    plt.xlabel("Year")
     plt.ylabel("$/gallon")
     plt.grid(True)
     plt.legend()
     plt.show()
 
 
-# %%
-API_KEY = "8M0JstWWu6UqKUC20EcMouZruPmFDIit6C2OG5p8"
+if __name__ == "__main__":
+    api_key = os.getenv("EIA_API_KEY")
+    if not api_key:
+        print("Error: EIA_API_KEY environment variable is not set.")
+        print("Set it with: export EIA_API_KEY=your_key_here")
+        exit(1)
 
-df_oil_pred, oil_model, oil_forecast_weekly, oil_historical_df = (
-    forecast_annual_heating_oil_price(
-        api_key=API_KEY,
-        years=15
+    df_oil_pred, oil_model, oil_forecast_weekly, oil_historical_df = (
+        forecast_annual_heating_oil_price(
+            api_key=api_key,
+            years=15
+        )
     )
-)
 
-print("Último dato histórico:")
-print(oil_historical_df["ds"].max())
+    print("Last historical data point:")
+    print(oil_historical_df["ds"].max())
 
-print("\nPredicción anual:")
-print(df_oil_pred)
+    print("\nAnnual prediction:")
+    print(df_oil_pred)
 
-df_oil_pred.to_csv("oil_forecast.csv", index=False)
+    df_oil_pred.to_csv("oil_forecast.csv", index=False)
 
-#plot_heating_oil_forecast(df_oil_pred)
-
+    # plot_heating_oil_forecast(df_oil_pred)

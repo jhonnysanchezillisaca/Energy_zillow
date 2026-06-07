@@ -1,12 +1,12 @@
 import pandas as pd
-import Funciones as f
-import certifi
-import ssl
-from rapidfuzz import process, utils
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 """
-This script takes the csv donwloaded previusly and it  cleans the data and 
-storage the clean data on a new csv called merged with the next columns
+This script takes the previously downloaded CSVs, cleans the data,
+and stores it in a new CSV called merged.csv with the following columns:
 Property ID
 Property Name
 Borough
@@ -45,24 +45,21 @@ latitude
 longitude
 """
 
+if __name__ == "__main__":
+    # Open CSVs
+    df_ll84 = pd.read_csv('LL84.csv', low_memory=False)
+    df_pluto = pd.read_csv('Pluto.csv', low_memory=False)
 
-#Open CSV
+    # Clean CSVs
+    from Funciones import clean_ll84, clean_pluto
+    clean_ll84(df_ll84)
+    clean_pluto(df_pluto)
 
-df_ll84 = pd.read_csv('LL84.csv',low_memory=False)
-df_pluto = pd.read_csv('Pluto.csv',low_memory=False)
+    # Merge
+    df_ll84 = pd.read_csv('clean_ll84.csv', low_memory=False)
+    df_pluto = pd.read_csv('clean_pluto.csv', low_memory=False)
 
-#Clean CSV
+    from Funciones import unir
+    merged = unir(df_ll84, df_pluto)
 
-f.clean_ll84(df_ll84)
-f.clean_pluto(df_pluto)
-
-#Merge
-
-
-df_ll84 = pd.read_csv('clean_ll84.csv',low_memory=False)
-df_pluto = pd.read_csv('clean_pluto.csv',low_memory=False)
-
-
-merged = f.unir(df_ll84,df_pluto)
-
-merged.to_csv('merged.csv',index = False,encoding='utf-8')
+    merged.to_csv('merged.csv', index=False, encoding='utf-8')
