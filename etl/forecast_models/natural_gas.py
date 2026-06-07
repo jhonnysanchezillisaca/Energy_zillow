@@ -1,4 +1,4 @@
-
+import os
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,16 +11,16 @@ def get_eia_monthly_natural_gas_prices_ny(
     process="PRS"
 ):
     """
-    Descarga precios mensuales de gas natural desde EIA.
+    Download monthly natural gas prices from EIA.
 
     Default:
         area="SNY"      -> New York
         process="PRS"   -> Price Delivered to Residential Consumers
 
-    Retorna:
-        DataFrame con columnas:
-            ds = fecha mensual
-            y  = precio en dollars per thousand cubic feet
+    Returns:
+        DataFrame with columns:
+            ds = monthly date
+            y  = price in dollars per thousand cubic feet
     """
 
     url = "https://api.eia.gov/v2/natural-gas/pri/sum/data/"
@@ -60,10 +60,10 @@ def forecast_annual_natural_gas_price(
     process="PRS"
 ):
     """
-    Entrena Prophet con precios mensuales de gas natural
-    y devuelve la predicción promedio anual para los próximos años.
+    Train Prophet with monthly natural gas prices
+    and return the average annual prediction for upcoming years.
 
-    Retorna:
+    Returns:
         forecast_annual
         model
         forecast_monthly
@@ -112,7 +112,7 @@ def forecast_annual_natural_gas_price(
 
 def plot_annual_natural_gas_forecast(forecast_annual):
     """
-    Grafica la predicción anual del precio promedio de gas natural.
+    Plot the annual average natural gas price prediction.
     """
 
     plt.figure(figsize=(10, 5))
@@ -121,7 +121,7 @@ def plot_annual_natural_gas_forecast(forecast_annual):
         forecast_annual["year"],
         forecast_annual["predicted_dollars_per_mcf"],
         marker="o",
-        label="Predicción"
+        label="Prediction"
     )
 
     plt.fill_between(
@@ -129,27 +129,33 @@ def plot_annual_natural_gas_forecast(forecast_annual):
         forecast_annual["lower_dollars_per_mcf"],
         forecast_annual["upper_dollars_per_mcf"],
         alpha=0.2,
-        label="Intervalo de incertidumbre"
+        label="Uncertainty interval"
     )
 
-    plt.title("Predicción del precio promedio anual del gas natural en NY")
-    plt.xlabel("Año")
-    plt.ylabel("Precio promedio, $/Mcf")
+    plt.title("Annual Average Natural Gas Price Prediction in NY")
+    plt.xlabel("Year")
+    plt.ylabel("Average Price, $/Mcf")
     plt.grid(True)
     plt.legend()
     plt.show()
 
-API_KEY = "8M0JstWWu6UqKUC20EcMouZruPmFDIit6C2OG5p8"
 
-df_gas_pred, gas_model, gas_forecast_monthly, gas_historical_df = (
-    forecast_annual_natural_gas_price(
-        api_key=API_KEY,
-        years=15
+if __name__ == "__main__":
+    api_key = os.getenv("EIA_API_KEY")
+    if not api_key:
+        print("Error: EIA_API_KEY environment variable is not set.")
+        print("Set it with: export EIA_API_KEY=your_key_here")
+        exit(1)
+
+    df_gas_pred, gas_model, gas_forecast_monthly, gas_historical_df = (
+        forecast_annual_natural_gas_price(
+            api_key=api_key,
+            years=15
+        )
     )
-)
 
-print(df_gas_pred)
+    print(df_gas_pred)
 
-df_gas_pred.to_csv("gas_forecast.csv", index=False)
+    df_gas_pred.to_csv("gas_forecast.csv", index=False)
 
-#plot_annual_natural_gas_forecast(df_gas_pred)
+    # plot_annual_natural_gas_forecast(df_gas_pred)

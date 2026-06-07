@@ -1,8 +1,9 @@
-#Vamos a crear un pograma que calcule el precio de los combustibles por anio
-#Empezamos con la electricidad en NY USA
+# Program to calculate fuel prices by year
+# Starting with electricity in NY, USA
 
 # pip install pandas requests matplotlib prophet
 
+import os
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,13 +12,13 @@ from prophet import Prophet
 
 def get_eia_monthly_prices_ny(api_key, sector="RES", state="NY"):
     """
-    Descarga precios mensuales de electricidad desde EIA.
-    Default: New York, sector residencial.
-    
-    Retorna:
-        df con columnas: ds, y
-        ds = fecha mensual
-        y = precio en cents/kWh
+    Download monthly electricity prices from EIA.
+    Default: New York, residential sector.
+
+    Returns:
+        DataFrame with columns: ds, y
+        ds = monthly date
+        y = price in cents/kWh
     """
     url = "https://api.eia.gov/v2/electricity/retail-sales/data/"
 
@@ -51,11 +52,11 @@ def get_eia_monthly_prices_ny(api_key, sector="RES", state="NY"):
 
 def forecast_annual_kwh_price(api_key, years=15, sector="RES", state="NY"):
     """
-    Entrena Prophet con datos mensuales y devuelve predicción anual
-    para los próximos `years` años.
+    Train Prophet with monthly data and return annual prediction
+    for the next `years` years.
 
-    Retorna:
-        forecast_annual: DataFrame con:
+    Returns:
+        forecast_annual: DataFrame with:
             year
             predicted_cents_per_kwh
             predicted_dollars_per_kwh
@@ -109,7 +110,7 @@ def forecast_annual_kwh_price(api_key, years=15, sector="RES", state="NY"):
 
 def plot_annual_forecast(forecast_annual):
     """
-    Grafica la predicción anual del precio promedio de electricidad.
+    Plot the annual average electricity price prediction.
     """
 
     plt.figure(figsize=(10, 5))
@@ -118,7 +119,7 @@ def plot_annual_forecast(forecast_annual):
         forecast_annual["year"],
         forecast_annual["predicted_cents_per_kwh"],
         marker="o",
-        label="Predicción"
+        label="Prediction"
     )
 
     plt.fill_between(
@@ -126,32 +127,33 @@ def plot_annual_forecast(forecast_annual):
         forecast_annual["lower_cents_per_kwh"],
         forecast_annual["upper_cents_per_kwh"],
         alpha=0.2,
-        label="Intervalo de incertidumbre"
+        label="Uncertainty interval"
     )
 
-    plt.title("Predicción del precio promedio anual de electricidad en NY")
-    plt.xlabel("Año")
-    plt.ylabel("Precio promedio, cents/kWh")
+    plt.title("Annual Average Electricity Price Prediction in NY")
+    plt.xlabel("Year")
+    plt.ylabel("Average Price, cents/kWh")
     plt.grid(True)
     plt.legend()
     plt.show()
 
-API_KEY = "8M0JstWWu6UqKUC20EcMouZruPmFDIit6C2OG5p8"
 
-df_pred, model, forecast_monthly, historical_df = forecast_annual_kwh_price(
-    api_key=API_KEY,
-    years=15,
-    sector="RES",
-    state="NY"
-)
+if __name__ == "__main__":
+    api_key = os.getenv("EIA_API_KEY")
+    if not api_key:
+        print("Error: EIA_API_KEY environment variable is not set.")
+        print("Set it with: export EIA_API_KEY=your_key_here")
+        exit(1)
 
-print(df_pred)
+    df_pred, model, forecast_monthly, historical_df = forecast_annual_kwh_price(
+        api_key=api_key,
+        years=15,
+        sector="RES",
+        state="NY"
+    )
 
-df_pred.to_csv("electricity_forecast.csv", index=False)
+    print(df_pred)
 
-#plot_annual_forecast(df_pred)
+    df_pred.to_csv("electricity_forecast.csv", index=False)
 
-
-
-
-
+    # plot_annual_forecast(df_pred)
