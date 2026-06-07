@@ -12,6 +12,7 @@ from backend.models import (
 )
 from backend.repository import BuildingRepository, get_repository
 from backend.services.recommendations import generate_recommendations
+from backend.config import CORS_ORIGINS
 
 app = FastAPI(
     title="Energy Dashboard API",
@@ -19,10 +20,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS for local frontend development
+# CORS origins from environment (comma-separated)
+origins = [origin.strip() for origin in CORS_ORIGINS.split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
