@@ -58,6 +58,13 @@ class RecommendationResponse(BaseModel):
     recommendations: str
 
 
+class BuildingSnapshot(BaseModel):
+    """Aggregate of building data needed for recommendations."""
+    info: BuildingInfo
+    penalties: Optional[PenaltyForecast] = None
+    fuels: Optional[FuelBreakdown] = None
+
+
 class BuildingDetail(BaseModel):
     info: BuildingInfo
     penalties: Optional[PenaltyForecast] = None

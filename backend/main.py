@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.models import (
@@ -10,13 +10,7 @@ from backend.models import (
     RecommendationResponse,
     SearchResult,
 )
-from backend.services.search import search_building
-from backend.services.buildings import (
-    get_building_info,
-    get_fuel_breakdown,
-    get_future_consumption,
-    get_penalty_forecast,
-)
+from backend.repository import BuildingRepository, get_repository
 from backend.services.recommendations import generate_recommendations
 
 app = FastAPI(
@@ -46,24 +40,27 @@ def health():
 
 
 @app.get("/api/v1/search", response_model=SearchResult)
-def search(address: str = Query(..., description="Building address to search for")):
+def search(
+    address: str = Query(..., description="Building address to search for"),
+    repo: BuildingRepository = Depends(get_repository),
+):
     """Fuzzy-search a building by address and return the best match."""
-    result = search_building(address)
+    result = repo.search_address(address)
     if result is None:
         raise HTTPException(status_code=404, detail="No building found for that address.")
     return result
 
 
 @app.get("/api/v1/buildings/{bbl}", response_model=BuildingDetail)
-def get_building(bbl: int):
+def get_building(bbl: int, repo: BuildingRepository = Depends(get_repository)):
     """Return full building details including info, penalties, fuels, and future consumption."""
-    info = get_building_info(2024, bbl)
+    info = repo.get_building_info(2024, bbl)
     if info is None:
         raise HTTPException(status_code=404, detail=f"Building with BBL {bbl} not found.")
 
-    penalties = get_penalty_forecast(2024, bbl)
-    fuels = get_fuel_breakdown(2024, bbl)
-    future = get_future_consumption(bbl)
+    penalties = repo.get_penalty_forecast(2024, bbl)
+    fuels = repo.get_fuel_breakdown(2024, bbl)
+    future = repo.get_future_consumption(bbl)
 
     return BuildingDetail(
         info=info,
@@ -74,19 +71,23 @@ def get_building(bbl: int):
 
 
 @app.get("/api/v1/buildings/{bbl}/future", response_model=list[FutureConsumptionScenario])
-def get_future(bbl: int):
+def get_future(bbl: int, repo: BuildingRepository = Depends(get_repository)):
     """Return future consumption scenarios for a building."""
-    future = get_future_consumption(bbl)
+    future = repo.get_future_consumption(bbl)
     if not future:
         raise HTTPException(status_code=404, detail=f"No future consumption data for BBL {bbl}.")
     return future
 
 
 @app.get("/api/v1/buildings/{bbl}/recommendations", response_model=RecommendationResponse)
-def get_recommendations(bbl: int):
+def get_recommendations(bbl: int, repo: BuildingRepository = Depends(get_repository)):
     """Generate 5 AI-powered energy efficiency recommendations for a building."""
+    snapshot = repo.get_building_snapshot(2024, bbl)
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail=f"Building with BBL {bbl} not found.")
+
     try:
-        return generate_recommendations(bbl)
+        return generate_recommendations(snapshot)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except RuntimeError as e:

@@ -1,12 +1,9 @@
-import os
 from openai import OpenAI
 from backend.config import OPENAI_API_KEY
-from backend.models import RecommendationResponse
-from backend.services.buildings import get_building_info, get_penalty_forecast, get_fuel_breakdown
-from backend.utils.helpers import ensure_dict
+from backend.models import RecommendationResponse, BuildingSnapshot
 
 
-def generate_recommendations(bbl: int) -> RecommendationResponse:
+def generate_recommendations(snapshot: BuildingSnapshot) -> RecommendationResponse:
     """Generate 5 energy efficiency recommendations using OpenAI."""
     api_key = OPENAI_API_KEY
     if not api_key:
@@ -14,12 +11,9 @@ def generate_recommendations(bbl: int) -> RecommendationResponse:
 
     client = OpenAI(api_key=api_key)
 
-    info = get_building_info(2024, bbl)
-    penalties = get_penalty_forecast(2024, bbl)
-    fuels = get_fuel_breakdown(2024, bbl)
-
-    if info is None:
-        raise ValueError(f"Building with BBL {bbl} not found.")
+    info = snapshot.info
+    penalties = snapshot.penalties
+    fuels = snapshot.fuels
 
     prompt = f"""
     You are an expert building energy efficiency consultant.
